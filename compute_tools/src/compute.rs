@@ -23,6 +23,7 @@ use postgres::error::SqlState;
 use remote_storage::{DownloadError, RemotePath};
 use std::collections::{HashMap, HashSet};
 use std::ffi::OsString;
+use std::net::IpAddr;
 use std::os::unix::fs::{PermissionsExt, symlink};
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -114,6 +115,12 @@ pub struct ComputeNodeParams {
     pub external_http_port: u16,
     /// The port that the compute's internal HTTP server listens on
     pub internal_http_port: u16,
+    /// Override for the external HTTP listener bind address.
+    /// `None` preserves the historical default (IPv6 wildcard).
+    pub external_http_listen_addr: Option<IpAddr>,
+    /// Override for the internal HTTP listener bind address.
+    /// `None` preserves the historical default (IPv6 wildcard).
+    pub internal_http_listen_addr: Option<IpAddr>,
 
     /// the address of extension storage proxy gateway
     pub remote_ext_base_url: Option<Url>,
@@ -652,6 +659,7 @@ impl ComputeNode {
             config: this.compute_ctl_config.clone(),
             compute_id: this.params.compute_id.clone(),
             instance_id: this.params.instance_id.clone(),
+            listen_addr: this.params.external_http_listen_addr,
         }
         .launch(&this);
 
@@ -659,6 +667,7 @@ impl ComputeNode {
         // sense in waiting.
         crate::http::server::Server::Internal {
             port: this.params.internal_http_port,
+            listen_addr: this.params.internal_http_listen_addr,
         }
         .launch(&this);
 

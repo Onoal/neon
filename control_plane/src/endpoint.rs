@@ -400,6 +400,10 @@ pub struct EndpointStartArgs {
     pub autoprewarm: bool,
     pub offload_lfc_interval_seconds: Option<std::num::NonZeroU64>,
     pub dev: bool,
+    /// Bind both `compute_ctl` HTTP listeners to the IPv4 loopback address.
+    /// An older `compute_ctl` binary without the matching arguments fails
+    /// instead of silently starting with wildcard listeners.
+    pub compute_ctl_loopback_only: bool,
 }
 
 impl Endpoint {
@@ -910,6 +914,15 @@ impl Endpoint {
 
         if args.dev {
             cmd.arg("--dev");
+        }
+
+        if args.compute_ctl_loopback_only {
+            cmd.args([
+                "--external-http-listen-address",
+                "127.0.0.1",
+                "--internal-http-listen-address",
+                "127.0.0.1",
+            ]);
         }
 
         if let Some(privileged_role_name) = self.privileged_role_name.clone() {

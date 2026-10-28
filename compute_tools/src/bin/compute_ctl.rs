@@ -35,6 +35,7 @@
 //! ```
 use std::ffi::OsString;
 use std::fs::File;
+use std::net::IpAddr;
 use std::process::exit;
 use std::sync::Arc;
 use std::sync::atomic::AtomicU64;
@@ -90,6 +91,16 @@ struct Cli {
         conflicts_with = "internal_http_port"
     )]
     pub http_port: Option<u16>,
+
+    /// Address to bind the external listening HTTP server to.
+    /// When omitted, the historical default (IPv6 wildcard `[::]`) is used.
+    #[arg(long)]
+    pub external_http_listen_address: Option<IpAddr>,
+
+    /// Address to bind the internal listening HTTP server to.
+    /// When omitted, the historical default (IPv6 wildcard `[::]`) is used.
+    #[arg(long)]
+    pub internal_http_listen_address: Option<IpAddr>,
 
     #[arg(short = 'D', long, value_name = "DATADIR")]
     pub pgdata: String,
@@ -256,6 +267,8 @@ fn main() -> Result<()> {
             pgversion: get_pg_version_string(&cli.pgbin),
             external_http_port,
             internal_http_port,
+            external_http_listen_addr: cli.external_http_listen_address,
+            internal_http_listen_addr: cli.internal_http_listen_address,
             remote_ext_base_url: cli.remote_ext_base_url.clone(),
             resize_swap_on_bind: cli.resize_swap_on_bind,
             set_disk_quota_for_fs: cli.set_disk_quota_for_fs,

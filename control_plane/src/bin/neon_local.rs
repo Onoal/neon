@@ -631,6 +631,13 @@ struct EndpointStartCmdArgs {
     /// Run in development mode, skipping VM-specific operations like process termination
     #[clap(long, action = clap::ArgAction::SetTrue)]
     dev: bool,
+
+    /// Bind both `compute_ctl` HTTP listeners to 127.0.0.1.
+    /// Requires a `compute_ctl` binary with `--external-http-listen-address`
+    /// and `--internal-http-listen-address` support; an older binary fails
+    /// instead of silently starting with wildcard listeners.
+    #[clap(long, action = clap::ArgAction::SetTrue)]
+    compute_ctl_loopback_only: bool,
 }
 
 /// Reconfigure an endpoint.
@@ -1538,6 +1545,7 @@ async fn handle_endpoint(subcmd: &EndpointCmd, env: &local_env::LocalEnv) -> Res
                 autoprewarm: args.autoprewarm,
                 offload_lfc_interval_seconds: args.offload_lfc_interval_seconds,
                 dev: args.dev,
+                compute_ctl_loopback_only: args.compute_ctl_loopback_only,
             };
 
             println!("Starting existing endpoint {endpoint_id}...");

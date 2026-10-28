@@ -39,12 +39,18 @@ use crate::compute::ComputeNode;
 pub enum Server {
     Internal {
         port: u16,
+        /// Address to bind the internal HTTP listener to.
+        /// `None` preserves the historical default (IPv6 wildcard).
+        listen_addr: Option<IpAddr>,
     },
     External {
         port: u16,
         config: ComputeCtlConfig,
         compute_id: String,
         instance_id: Option<String>,
+        /// Address to bind the external HTTP listener to.
+        /// `None` preserves the historical default (IPv6 wildcard).
+        listen_addr: Option<IpAddr>,
     },
 }
 
@@ -193,8 +199,12 @@ impl Server {
         match self {
             // TODO: Change this to Ipv6Addr::LOCALHOST when the GitHub runners
             // allow binding to localhost
-            Server::Internal { .. } => IpAddr::from(Ipv6Addr::UNSPECIFIED),
-            Server::External { .. } => IpAddr::from(Ipv6Addr::UNSPECIFIED),
+            Server::Internal { listen_addr, .. } => {
+                listen_addr.unwrap_or_else(|| IpAddr::from(Ipv6Addr::UNSPECIFIED))
+            }
+            Server::External { listen_addr, .. } => {
+                listen_addr.unwrap_or_else(|| IpAddr::from(Ipv6Addr::UNSPECIFIED))
+            }
         }
     }
 
